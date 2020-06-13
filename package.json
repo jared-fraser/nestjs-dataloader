@@ -14,6 +14,9 @@
     "start": "nest start example/src/main.ts --watch --path=example/tsconfig.json",
     "test": "jest"
   },
+  "precommit": [
+    "build"
+  ],
   "keywords": [
     "nestjs",
     "dataloader",
