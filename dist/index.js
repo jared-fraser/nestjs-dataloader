@@ -30,15 +30,16 @@ let DataLoaderInterceptor = class DataLoaderInterceptor {
     intercept(context, next) {
         const graphqlExecutionContext = graphql_1.GqlExecutionContext.create(context);
         const ctx = graphqlExecutionContext.getContext();
-        if (ctx[NEST_LOADER_CONTEXT_KEY] === undefined) {
+        if (ctx && ctx[NEST_LOADER_CONTEXT_KEY] === undefined) {
             ctx[NEST_LOADER_CONTEXT_KEY] = {
                 contextId: core_1.ContextIdFactory.create(),
                 getLoader: (type) => {
                     if (ctx[type] === undefined) {
                         try {
                             ctx[type] = (() => __awaiter(this, void 0, void 0, function* () {
-                                return (yield this.moduleRef.get(type, { strict: false }))
-                                    .generateDataLoader(ctx);
+                                return (yield this.moduleRef.get(type, {
+                                    strict: false,
+                                })).generateDataLoader(ctx);
                             }))();
                         }
                         catch (e) {
@@ -46,7 +47,7 @@ let DataLoaderInterceptor = class DataLoaderInterceptor {
                         }
                     }
                     return ctx[type];
-                }
+                },
             };
         }
         return next.handle();
