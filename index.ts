@@ -7,7 +7,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { APP_INTERCEPTOR, ModuleRef, ContextIdFactory } from '@nestjs/core';
-import { GqlExecutionContext } from '@nestjs/graphql';
+import { GqlExecutionContext, GraphQLExecutionContext } from '@nestjs/graphql';
 import * as DataLoader from 'dataloader';
 import { Observable } from 'rxjs';
 import { idText } from 'typescript';
@@ -17,6 +17,12 @@ import { idText } from 'typescript';
  * The concrete implementation should be added as a provider to your module.
  */
 export interface NestDataLoader<ID, Type> {
+  /**
+   * Should return a new instance of dataloader each time
+   * Should return a new instance of dataloader each time
+   * @params ctx: the graphql execution context
+   */
+  generateDataLoader(ctx: GraphQLExecutionContext): DataLoader<ID, Type>;
   /**
    * Should return a new instance of dataloader each time
    */
@@ -49,14 +55,14 @@ export class DataLoaderInterceptor implements NestInterceptor {
         getLoader: (type: string) : Promise<NestDataLoader<any, any>> => {
           if (ctx[type] === undefined) {
             try {           
-              ctx[type] = (async () => { 
-                return (await this.moduleRef.resolve<NestDataLoader<any, any>>(type, ctx[NEST_LOADER_CONTEXT_KEY].contextId, { strict: false }))
-                  .generateDataLoader();
+              ctx[type] = (async () => {
+                return (await this.moduleRef.get<NestDataLoader<any, any>>(type, { strict: false }))
+                  .generateDataLoader(ctx);
               })();
             } catch (e) {
               throw new InternalServerErrorException(`The loader ${type} is not provided` + e);
             }
-          }
+        }
           return ctx[type];
         }
       };
